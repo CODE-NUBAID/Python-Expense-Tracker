@@ -1,11 +1,18 @@
 import sqlite3
 from datetime import datetime
+import csv
+import matplotlib.pyplot as plt
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
+DB_NAME = "expenses.db"
 
 # -----------------------------
 # Database Setup
 # -----------------------------
 def init_db():
-    conn = sqlite3.connect("expenses.db")
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS expenses (
@@ -22,81 +29,178 @@ def init_db():
 # Add Expense
 # -----------------------------
 def add_expense(category, amount):
-    conn = sqlite3.connect("expenses.db")
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute("INSERT INTO expenses (category, amount, date) VALUES (?, ?, ?)",
-                   (category, amount, date))
+    cursor.execute(
+        "INSERT INTO expenses (category, amount, date) VALUES (?, ?, ?)",
+        (category, amount, date)
+    )
     conn.commit()
     conn.close()
-    print(f"✅ Added expense: {category} - {amount} on {date}")
+    console.print(f"✅ [bold green]Expense Added:[/bold green] {category} - ₹{amount}")
 
 # -----------------------------
-# View All Expenses
+# View Expenses
 # -----------------------------
 def view_expenses():
-    conn = sqlite3.connect("expenses.db")
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM expenses")
     rows = cursor.fetchall()
     conn.close()
 
     if not rows:
-        print("No expenses recorded yet.")
+        console.print("❌ No expenses found.")
         return
 
-    print("\n--- All Expenses ---")
+    table = Table(title="💸 All Expenses")
+    table.add_column("ID")
+    table.add_column("Category")
+    table.add_column("Amount")
+    table.add_column("Date")
+
     for row in rows:
-        print(f"ID: {row[0]} | Category: {row[1]} | Amount: {row[2]} | Date: {row[3]}")
+        table.add_row(str(row[0]), row[1], f"₹{row[2]}", row[3])
+
+    console.print(table)
 
 # -----------------------------
 # Summary by Category
 # -----------------------------
-def summary():
-    conn = sqlite3.connect("expenses.db")
+def summary_by_category():
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
+    cursor.execute(
+        "SELECT category, SUM(amount) FROM expenses GROUP BY category"
+    )
     rows = cursor.fetchall()
     conn.close()
 
     if not rows:
-        print("No expenses to summarize.")
+        console.print("❌ No data to summarize.")
         return
 
-    print("\n--- Expense Summary ---")
+    table = Table(title="📊 Category Summary")
+    table.add_column("Category")
+    table.add_column("Total Spent")
+
     for row in rows:
-        print(f"Category: {row[0]} | Total Spent: {row[1]}")
+        table.add_row(row[0], f"₹{row[1]}")
+
+    console.print(table)
+
+# -----------------------------
+# Monthly Summary
+# -----------------------------
+def monthly_summary():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT strftime('%Y-%m', date), SUM(amount)
+        FROM expenses
+        GROUP BY strftime('%Y-%m', date)
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    table = Table(title="📅 Monthly Summary")
+    table.add_column("Month")
+    table.add_column("Total Spent")
+
+    for row in rows:
+        table.add_row(row[0], f"₹{row[1]}")
+
+    console.print(table)
+
+# -----------------------------
+# Expense Chart
+# -----------------------------
+def show_chart():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT category, SUM(amount) FROM expenses GROUP BY category"
+    )
+    data = cursor.fetchall()
+    conn.close()
+
+    if not data:
+        console.print("❌ No data for chart.")
+        return
+
+    categories = [row[0] for row in data]
+    amounts = [row[1] for row in data]
+
+    plt.figure(figsize=(8, 6))
+    plt.pie(amounts, labels=categories, autopct='%1.1f%%', startangle=140)
+    plt.title("Expense Distribution by Category")
+    plt.show()
+
+# -----------------------------
+# Export to CSV
+# -----------------------------
+def export_to_csv():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM expenses")
+    rows = cursor.fetchall()
+    conn.close()
+
+    with open("expenses.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["ID", "Category", "Amount", "Date"])
+        writer.writerows(rows)
+
+    console.print("📁 [bold green]Exported to expenses.csv[/bold green]")
 
 # -----------------------------
 # Main Menu
 # -----------------------------
 def main():
     init_db()
-    while True:
-        print("\nExpense Tracker Menu")
-        print("1. Add Expense")
-        print("2. View Expenses")
-        print("3. Summary")
-        print("4. Exit")
 
-        choice = input("Enter choice (1-4): ")
+    while True:
+        console.print("\n[bold cyan]Expense Tracker Menu[/bold cyan]")
+        console.print("1️⃣ Add Expense")
+        console.print("2️⃣ View Expenses")
+        console.print("3️⃣ Category Summary")
+        console.print("4️⃣ Monthly Summary")
+        console.print("5️⃣ Show Chart")
+        console.print("6️⃣ Export to CSV")
+        console.print("7️⃣ Exit")
+
+        choice = input("\nEnter choice (1-7): ")
 
         if choice == "1":
-            category = input("Enter category: ")
+            category = input("Category: ")
             try:
-                amount = float(input("Enter amount: "))
+                amount = float(input("Amount: "))
                 add_expense(category, amount)
             except ValueError:
-                print("❌ Invalid amount. Please enter a number.")
+                console.print("❌ Invalid amount")
+
         elif choice == "2":
             view_expenses()
+
         elif choice == "3":
-            summary()
+            summary_by_category()
+
         elif choice == "4":
-            print("Goodbye! 👋")
+            monthly_summary()
+
+        elif choice == "5":
+            show_chart()
+
+        elif choice == "6":
+            export_to_csv()
+
+        elif choice == "7":
+            console.print("👋 Goodbye!")
             break
+
         else:
-            print("❌ Invalid choice. Try again.")
+            console.print("❌ Invalid choice")
 
 if __name__ == "__main__":
     main()

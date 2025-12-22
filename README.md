@@ -1,34 +1,59 @@
-# Expense Tracker (Python + SQLite)
+# 💸 Expense Tracker (Python + SQLite)
 
-A simple yet powerful command-line expense tracker built with Python and SQLite.
-This project helps you record, view, and summarize your daily expenses, making it easier to manage your personal finances.
+A simple yet powerful **command-line Expense Tracker** built using **Python**, **SQLite**, and enhanced with **Rich CLI styling** and **Matplotlib charts**.  
+It helps users track daily expenses, analyze spending patterns, and visualize data easily.
 
-## 🚀 Features
-1. Add new expenses with category and amount
+---
 
-2. View all recorded expenses in a clean format
+## ✨ Features
 
-3. Summarize spending by category
+- 📥 Add expenses with category & amount
+- 📋 View all recorded expenses in a clean table
+- 📊 Category-wise expense summary
+- 📅 Monthly expense summary
+- 📈 Pie chart visualization of expenses
+- 📂 Export all expenses to CSV
+- 🎨 Beautiful terminal UI using `rich`
+- 🗄️ Persistent storage using SQLite
 
-4. Auto‑timestamps each expense
-
-5. Error handling for invalid inputs
-
-6. Lightweight and portable (uses SQLite database)
+---
 
 ## 🛠️ Tech Stack
-1. Python 3
-2. SQLite3 (built-in database, no external setup required)
 
-## 📈 Future Enhancements
-1. Income tracking & savings calculation
+- **Language:** Python 3
+- **Database:** SQLite
+- **Libraries:**
+  - `matplotlib` – for charts
+  - `rich` – for colorful CLI tables
+  - `csv` – for exporting data
 
-2. Monthly/Yearly reports
+---
 
-3. Budget alerts when overspending
+## MENU
+1. Add Expense
+2. View Expenses
+3. Category Summary
+4. Monthly Summary
+5. Show Chart
+6. Export to CSV
+7. Exit
 
-4. Export to CSV/Excel
+## 📊 Charts & Visualization
+Selecting “Show Chart” opens a pie chart window
+Charts are generated using matplotlib
+Make sure you add expenses before viewing charts
+📌 Note: Charts open in a separate window, not inside the terminal.
 
-5. Data visualization with charts
+## 📁 Export Data
+All expenses can be exported to a CSV file
+File name: expenses.csv
+Useful for Excel, Google Sheets, or reports
 
-6. Web app version using Flask/Django
+## 🚀 Future Enhancements
+🔐 User authentication
+💰 Budget limits & alerts
+🖥️ GUI version using Tkinter / CustomTkinter
+🌐 Web app using Flask or Streamlit
+📉 Advanced charts & filters
+🧠 Learning Outcomes
+
